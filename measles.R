@@ -68,3 +68,7 @@ ggsave(
   dpi = 1e3,
   bg = NULL
 )
+
+
+difftime(as.Date('1967-01-01'), min(dfMonth$yearMonth), units = 'weeks')
+

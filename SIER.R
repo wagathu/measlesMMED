@@ -10,9 +10,9 @@ parms <- c(
   beta0 = 3.6,
   sigma = 1/IN,
   N = N0,
-  rho = .2,
-  vacc.yr = 365 * 2,
-  alpha = .11
+  rho = .66,
+  alpha = .11,
+  delta = 0.01
 )
 
 # We need to set the inital states
@@ -21,18 +21,22 @@ y <- c(
   E = 20,
   I = 20,
   R = 0) 
-deltat <- 0.1
-maxout = 365*5
+deltat <- 1
+maxout = 365*50
 
-sier <-\(t, parms,y) {
+sier <- \(t, y, parms) {
   with(c(as.list(y), parms), {
-   rho <-  ifelse(t >= vacc.yr, rho, 0)
-    beta  = beta0 * (1 + alpha * cos(2 * pi * t))
-    dSdt <- b * N * (1 - rho)  - mu * S - beta * S * I/N
-    dEdt <- beta * S * I/N - sigma * E -  mu * E
-    dIdt <- sigma * E  - gamma * I -  mu * I
-    dRdt <- b * rho + gamma * I - mu * I
-    return(list(c(dSdt,dEdt, dIdt, dRdt)))
+    if (t >= 8401) {
+      rho <- rho
+    } else {
+      rho <- 0
+    }
+    beta <- beta0 * (1 + alpha * cos(2 * pi * (t / 365)))
+    dSdt <- b * N * (1 - rho) - mu * S - beta * S * I / N
+    dEdt <- beta * S * I / N - sigma * E - mu * E
+    dIdt <- sigma * E - gamma * I - mu * I - delta * I
+    dRdt <- b * rho + gamma * I - mu * R
+    return(list(c(dSdt, dEdt, dIdt, dRdt)))
   })
 }
 
@@ -45,27 +49,27 @@ tt <- lsoda(
   as.data.frame()
 
 
-tt |> 
+modelResults <- tt |>
   ggplot() +
   geom_line(aes(x = time, y = I)) +
-  theme_light() +
-  annotate(
-    geom = "segment",
-    x = 365 * 2,
-    y = 15000,
-    xend = 365 * 2,
-    yend = 50000,
-    arrow = arrow(length = unit(0.15, "cm"), ends = "first"),
-    color = "#2b8cbe"
+  geom_vline(aes(xintercept = 8401),
+             linetype = 2,
+             col = 'red') +
+  theme_classic() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    axis.text = element_text(color = 'black'),
+    axis.title = element_text(color = 'black')
   ) +
-  annotate(
-    geom = "text",
-    x = 365 * 2,
-    y = 20000,
-    label = "Start of vaccination",
-    vjust = -30,
-    hjust = 0.5,
-    color = "#2b8cbe",
-    size = 3.5
-  )
+  labs(x = 'Year', y = 'Measles cases')
+modelResults
+# ggsave(
+#   'images/modelResults.png',
+#   width = 10,
+#   height = 6,
+#   dpi = 1e3,
+#   bg = NULL
+# )
+# 
+# 
 
