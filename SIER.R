@@ -4,7 +4,7 @@ D <- 5
 IN <- 10
 N0 <- 7780000
 parms <- c(
-  b = 1/(10 * 365), # birth rate
+  b = 1/(60 * 365), # birth rate
   mu = 1/(60 * 365), # death rate
   gamma = 1/D, # The duration of infection
   beta0 = 3.6,

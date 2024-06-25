@@ -77,7 +77,7 @@ seir <- function(t, y, params) {
   nu <- mu * N
   
   dSdt <- nu - (beta * S * I / N) - (mu * S)
-  dEdt <- (beta * S * I / N) - (mu * E) - (sigma * E)
+  dEdt <- (beta * S * I / N) - (mu * E) - (sigma * E) 
   dIdt <- (sigma * E) - (mu * I) - (gamma * I)
   dRdt <- (gamma * I) - (mu * R)
   

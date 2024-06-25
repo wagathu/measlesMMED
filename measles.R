@@ -7,7 +7,6 @@ pacman::p_load(data.table, tidyverse, purrr, deSolve, ggalt, zoo, lubridate, pat
 
 df <- fread('data/londonMeaslesWeekly.csv')
 
-
 # Creating the weekly measles cases ---------------------------------------
 
 df2 <- df |> 
@@ -27,7 +26,7 @@ dfMonth <- df %>%
 pltMeaslesCases <- df2 |>
   ggplot(aes(x = date)) +
   geom_line(aes(y = cases)) +
-  geom_vline(aes(xintercept = 1960),
+  geom_vline(aes(xintercept = 1967),
              linetype = 2,
              col = 'red') +
   theme_classic() +
@@ -51,7 +50,7 @@ ggsave(
 pltMeaslesCasesMonth <- dfMonth |>
   ggplot(aes(x = yearMonth)) +
   geom_line(aes(y = cases)) +
-  geom_vline(aes(xintercept = 1960),
+  geom_vline(aes(xintercept = 1967),
              linetype = 2,
              col = 'red') +
   theme_classic() +
@@ -61,7 +60,7 @@ pltMeaslesCasesMonth <- dfMonth |>
     axis.title = element_text(color = 'black')
   ) +
   labs(x = 'Year', y = 'Measles cases')
-pltMeaslesCases + pltMeaslesCasesMonth 
+pltMeaslesCasesMonth 
 ggsave(
   'images/pltMeaslesCasesMonth.png',
   width = 10,
