@@ -6,6 +6,7 @@ pacman::p_load(data.table, tidyverse, purrr, deSolve, ggalt, zoo, lubridate, pat
 # Importing data ----------------------------------------------------------
 
 df <- fread('data/londonMeaslesWeekly.csv')
+demography <- fread('data/londonDemography.csv')
 
 # Creating the weekly measles cases ---------------------------------------
 
@@ -19,7 +20,23 @@ dfMonth <- df %>%
   ) |> 
   dplyr::select(yearMonth, cases) |> 
   group_by(yearMonth) |> 
-  summarise(cases = sum(cases))
+  summarise(cases = sum(cases)) 
+
+
+# Combining for demography ------------------------------------------------
+
+demoDf <- df2 |> 
+  mutate(year = year(date)) |> 
+  merge(demography |> dplyr::select(year = Year, births = Births, pop = Pop, vax = Vax),
+        by = 'year'
+        ) |> 
+  mutate(B_t = (births/pop)/52,
+         vacc_rate = (vax/pop)/52
+         )
+
+modelDf <- demoDf |> 
+  dplyr::select(date, B_t, vacc_rate) |> 
+  mutate(date = ymd(date))
 
 # Plotting for the measles inicidence -------------------------------------
 
