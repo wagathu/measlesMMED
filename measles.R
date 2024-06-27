@@ -7,8 +7,10 @@ pacman::p_load(data.table, tidyverse, purrr, deSolve, ggalt, zoo, lubridate, pat
 
 df <- fread('data/londonMeaslesWeekly.csv')
 demography <- fread('data/londonDemography.csv')
+births <- fread('https://raw.githubusercontent.com/davidearn/iidda/master/data/bth_uk__lon_1944-94_yr/source-data/bth_uk__lon_1944-94_yr.csv')
 
 # Creating the weekly measles cases ---------------------------------------
+
 
 df2 <- df |> 
   mutate(date = ymd(paste(year, month, day, sep = '-'))) |> 
@@ -43,7 +45,7 @@ modelDf <- demoDf |>
 pltMeaslesCases <- df2 |>
   ggplot(aes(x = date)) +
   geom_line(aes(y = cases)) +
-  geom_vline(aes(xintercept = 1967),
+  geom_vline(aes(xintercept = as.Date('1967-01-01')),
              linetype = 2,
              col = 'red') +
   theme_classic() +
@@ -67,7 +69,7 @@ ggsave(
 pltMeaslesCasesMonth <- dfMonth |>
   ggplot(aes(x = yearMonth)) +
   geom_line(aes(y = cases)) +
-  geom_vline(aes(xintercept = 1967),
+  geom_vline(aes(xintercept = zoo::as.yearmon('1967-01-01')),
              linetype = 2,
              col = 'red') +
   theme_classic() +

@@ -11,7 +11,7 @@ parms <- c(
   b = 1.10/(60 * 365),                         # The birth rate
   mu = 1/(60 * 365),                           # The death rate
   beta0 = 3.6,                                 # The transmission parameter
-  alpha = .011,                                  # The amplitude 
+  alpha = .11,                                 # The amplitude 
   sigma = 1 / latentPeriod,                    # Progression rate from pre-infectious to Infectious
   delta = 0.01,                                # Disease induced deaths
   gamma = 1 / durationInfection                # Recovery rate
@@ -74,3 +74,9 @@ modelResults <- subset(modellong, time > 100 & name == "I") |>
   scale_x_continuous()
 modelResults
 
+
+# Calculating the negative likelihood -------------------------------------
+
+nlikelihood <- \(parms, obsData = londonMeasles) {
+  
+}
