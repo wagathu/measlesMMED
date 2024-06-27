@@ -163,8 +163,8 @@ diffBirths <- \(parms, births, ...) {
         
         # Fixed parameters
         delta = 0
-        mu = .02 / 365                                     # The death rate
-        b = .02 / 365                                      # The birth rate
+        mu = b / 365                                     # The death rate
+        b = b / 365                                      # The birth rate
         sigma = 1 / latentPeriod                         # Progression rate from pre-infectious to Infectious
         gamma = 1 / durationInfection                    # Recovery rate
         
@@ -209,6 +209,7 @@ dfs <- diffBirths(parms = parms, births = births) %>%
     x |>
       data.table() %>%
       .[, birth := y] %>%
+      .[, cases := demoDf$cases] %>%
       .[date > as.Date('1950-12-31'),]
   }) |> rbindlist()
 
@@ -265,7 +266,7 @@ individualWk <- copy(dfs) |>
         labs(x = 'Year', y = 'Weekly measles cases', title = paste('Birth rate:', y)) 
     }
   )
-individual <- wrap_plots(individual, nrow = 2)
+individual <- wrap_plots(individualWk, nrow = 2)
 individual
 ggsave(
   'images/combinedWeeklyIncidence.png',
@@ -315,15 +316,9 @@ ggsave(
 
 # Comparing with the actual data ------------------------------------------
 
-demoDf |>
-  select(date, cases) |> 
-  filter(date > as.Date('1951-01-01')) |> 
-  ggplot() +
-  geom_line(aes(x = date, y = cases))
 
-dfs |> 
-  _[, merge(.SD, demoDf |> select(date, cases), by = 'date')] |> 
-  _[ ,birth := case_when(
+compares <-  copy(dfs) |>
+  _[, birth := case_when(
     birth == 'birth_0.01' ~ '0.01',
     birth == 'birth_0.02' ~ '0.02',
     birth == 'birth_0.03' ~ '0.03',
@@ -331,22 +326,40 @@ dfs |>
     TRUE ~ '0.05'
   )] %>%
   split(.$birth) %>%
-  map2(., as.character(names(.)),
-       \(x,y) { 
-         x |> 
-           ggplot(aes(x = date)) +
-           geom_point(aes(y = cases)) +
-           geom_line(aes(y = weekly_incidence)) +
-           theme_classic() +
-           theme(
-             axis.line = element_line(color = 'black'),
-             axis.text = element_text(color = 'black'),
-             axis.title = element_text(color = 'black'),
-             plot.title = element_text(color = 'black', hjust = .5)
-           ) + 
-           labs(x = 'Year', y = 'Weekly measles cases', title = paste('Birth rate:', y)) 
-       }
-  )
+  map2(., as.character(names(.)), \(x, y) {
+    x |>
+      ggplot(aes(x = date)) +
+      geom_point(aes(y = cases, col = '1', ), show.legend = TRUE) +
+      geom_line(aes(y = weekly_incidence, col = '2', ), show.legend = TRUE) +
+      theme_classic() +
+      theme(
+        axis.line = element_line(color = 'black'),
+        axis.text = element_text(color = 'black'),
+        axis.title = element_text(color = 'black'),
+        plot.title = element_text(color = 'black', hjust = .5)
+      ) +
+      labs(x = 'Year',
+           y = 'Weekly measles cases',
+           title = paste('Birth rate:', y)) +
+      scale_color_manual(
+        values = c("2", "1"),
+        labels = c("Actual measles cases", "Cases from model"),
+        guide = guide_legend(override.aes = list(linetype = c(NA, 2))) 
+        
+      ) 
+  })
+
+leg <- as_ggplot(get_legend(compares))
+
+pltCompare <- wrap_plots(compares, leg, nrow = 2, guides = 'collect')  &
+  theme(legend.position = "bottom")
+ggsave(
+  'images/pltCompare.png',
+  width = 20,
+  height = 18,
+  dpi = 1e3,
+  bg = NULL
+)
 
 # Calculating the negative likelihood -------------------------------------
 
