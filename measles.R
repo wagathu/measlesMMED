@@ -6,11 +6,14 @@ pacman::p_load(data.table, tidyverse, purrr, deSolve, ggalt, zoo, lubridate, pat
 # Importing data ----------------------------------------------------------
 
 df <- fread('data/londonMeaslesWeekly.csv')
-demography <- fread('data/londonDemography.csv')
-births <- fread('https://raw.githubusercontent.com/davidearn/iidda/master/data/bth_uk__lon_1944-94_yr/source-data/bth_uk__lon_1944-94_yr.csv')
+b <- fread('data/births.csv')
+pop <- fread('data/population.csv')
 
 # Creating the weekly measles cases ---------------------------------------
 
+demography <- merge(b |> 
+                      mutate(year = as.integer(year))
+                    , pop, by = 'year')
 
 df2 <- df |> 
   mutate(date = ymd(paste(year, month, day, sep = '-'))) |> 
@@ -29,16 +32,20 @@ dfMonth <- df %>%
 
 demoDf <- df2 |> 
   mutate(year = year(date)) |> 
-  merge(demography |> dplyr::select(year = Year, births = Births, pop = Pop, vax = Vax),
+  merge(demography ,
         by = 'year'
         ) |> 
-  mutate(B_t = (births/pop)/52,
-         vacc_rate = (vax/pop)/52
-         )
+  mutate(date = ymd(date),
+         P = cases/population)
 
-modelDf <- demoDf |> 
-  dplyr::select(date, B_t, vacc_rate) |> 
-  mutate(date = ymd(date))
+myDat <- demoDf |>
+  mutate(
+    time = year,
+    numPos = cases,
+    numSamp = population,
+    P = cases / population
+  ) |>
+  dplyr::select(time, numPos, numSamp, P)
 
 # Plotting for the measles inicidence -------------------------------------
 
