@@ -41,7 +41,7 @@ demoDf <- df2 |>
 
 myDat <- demoDf |>
   mutate(
-    time = year,
+    time = date,
     numPos = cases,
     numSamp = population,
     P = cases / population
