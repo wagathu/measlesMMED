@@ -3,6 +3,7 @@ require(ggplot2);require(deSolve)
 D <- 5
 IN <- 8
 N0 <- 500000
+latent <- 8
 parms <- c(
   gamma = 1 / D, # duration of infection
   beta0 = 3.6,
@@ -26,7 +27,7 @@ y <- c(
   R = 0.968 * N0
 )
 deltat <- 7
-times <- seq.Date(from = as.Date(min(modelDf$date)), to = as.Date(max(modelDf$date)), by = deltat)
+times <- seq.Date(from = as.Date(min(demoDf$date)), to = as.Date(max(demoDf$date)), by = deltat)
 sier <- \(t, y, parms) {
   with(c(as.list(y), parms), {
     
@@ -35,10 +36,10 @@ sier <- \(t, y, parms) {
     day_of_year <- as.numeric(format(date2, "%j"))
     week_of_year <- as.numeric(format(date2, "%U"))
     
-    # Extract B_t and vacc_rate from modelDf for the current date
-    current_data <- modelDf[date == date2,]
+    # Extract B_t and vacc_rate from demoDf for the current date
+    current_data <- demoDf[date == date2,]
     B_t <- current_data$B_t
-    vacc_rate <- current_data$vacc_rate
+    vacc_rate <- .7
     
     # Adjust birth rate for the first week of September
     if (week_of_year == 35) {
@@ -52,7 +53,7 @@ sier <- \(t, y, parms) {
     births <- rpois(1, birth_rate * deltat)
     vaccination <- rpois(1, vacc_rate * Ve * deltat)
     N = sum(y)
-    lambda <- beta * S * (N^(-1)) * rgamma(1, shape = 1, scale = sigma_se)
+    lambda <- beta * S /N * rgamma(1, shape = 1, scale = sigma_se)
     dSdt <- births - lambda * (I + iota)^alpha - mu * S - vaccination
     dEdt <- lambda * (I + iota)^alpha - sigma * E - mu * E
     dIdt <- sigma * E - gamma * I - mu * I

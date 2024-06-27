@@ -2,31 +2,32 @@
 # Importing the packages --------------------------------------------------
 
 pacman::p_load(data.table, deSolve, tidyverse)
+source('measles.R')
 
 # Collecting the parameter values -----------------------------------------
-durationInfection <- 5
-latentPeriod <- 8
-N0 <- 5e5
+durationInfection <- 5/7
+latentPeriod <- 8/7
+N0 <- 6374980
 parms <- c(
-  b = 1.10/(80 * 365),                         # The birth rate
-  mu = 1/(80 * 365),                           # The death rate
+  b = 1.10/(60 * 52),                         # The birth rate
+  mu = 1/(60 * 52),                           # The death rate
   beta0 = 3.6,                                 # The transmission parameter
-  alpha = .2,                                 # The amplitude 
+  alpha = .11,                                 # The amplitude 
   sigma = 1 / latentPeriod,                    # Progression rate from pre-infectious to Infectious
-  delta = 0.01,                                # Disease induced deaths
+  delta = 0.001/52,                              # Disease induced deaths
   gamma = 1 / durationInfection                # Recovery rate
 )
 
 # The state variables -----------------------------------------------------
 
-y <- c(S = .99 * N0,
+y <- c(S = .0645 * 6374898,
        E = 0,
-       I = .1 * N0,
+       I = 82,
        R = 0)
 
 # Some more parameters of interest
 deltat <- 1
-maxout <- 365 * 50
+#maxout <- 365 * 50
 
 # The SEIR model ----------------------------------------------------------
 
@@ -34,8 +35,7 @@ seir <- \(t, y, parms) {
   with(c(as.list(y), parms), {
     N = sum(y)
     births = b * N
-    beta <- beta0 * (1 + alpha * cos(2 * pi * (t / 365)))
-    beta <- beta
+    beta <- beta0 * (1 + alpha * cos(2 * pi * (t / 52)))
     dSdt = births - mu * S - beta * S * I / N
     dEdt = beta * S * I / N - mu * E - sigma * E
     dIdt = sigma * E - I * (mu + delta) - gamma * I
@@ -46,18 +46,17 @@ seir <- \(t, y, parms) {
 
 # Solving the differential equations --------------------------------------
 
-modelResults <- lsoda(
+modelResultsDf <- lsoda(
   y = y,
   parms = parms,
   func = seir,
-  times = seq(deltat, maxout, by = deltat)
+  times = seq(1, nrow(demoDf), by = 1)
 )
-
-modelDf <- modelResults |> 
+modelDf <- modelResultsDf |> 
   as.data.frame() |> 
-  mutate(N = S + E + I + R)
-
-modellong <- modelDf |> pivot_longer(cols = -time)
+  mutate(N = S + E + I + R,
+         time = demoDf$date
+         )
 
 # Plotting ----------------------------------------------------------------
 
@@ -74,7 +73,8 @@ modellong <- modelDf |> pivot_longer(cols = -time)
 #   scale_x_log10()
 # modelResults
 
-modelResults <- subset(modelDf, time > 100) |>
+modelResults <- modelDf |>
+  filter(time > as.Date('1950-01-01')) |> 
   ggplot() +
   geom_line(aes(x = time, y = I), col = 'red') +
   theme_classic() +
@@ -84,44 +84,74 @@ modelResults <- subset(modelDf, time > 100) |>
     axis.title = element_text(color = 'black'),
     plot.title = element_text(color = 'black', hjust = .5)
   ) +
-  labs(x = 'days', y = 'Measles cases', title = 'Births rate at 0.01375') 
+  labs(x = 'days', y = 'Measles cases') 
 modelResults
-ggsave(
-  'images/birth0.01375.png',
-  width = 10,
-  height = 6,
-  dpi = 1e3,
-  bg = NULL
-)
+# ggsave(
+#   'images/birth0.01375.png',
+#   width = 10,
+#   height = 6,
+#   dpi = 1e3,
+#   bg = NULL
+# )
+
+# Comparing to our own data
+dfCompare <- modelDf |>
+  data.frame() |> 
+  mutate(date = time) |> 
+  dplyr::select(-time) |> 
+  merge(demoDf |> select(date,cases), by = 'date')
+
+pltCompare <- dfCompare |>
+  filter(date > as.Date('1950-01-01')) |> 
+  ggplot(aes(x = date)) +
+  geom_point(aes(y = cases), col = 'red') +
+  geom_line(aes(y = I)) +
+  theme_classic() +
+  theme(
+    axis.line = element_line(color = 'black'),
+    axis.text = element_text(color = 'black'),
+    axis.title = element_text(color = 'black'),
+    plot.title = element_text(color = 'black', hjust = .5)
+  ) 
+pltCompare
+# ggsave(
+#   'images/birth0.01375.png',
+#   width = 10,
+#   height = 6,
+#   dpi = 1e3,
+#   bg = NULL
+# )
 
 # Calculating the negative likelihood -------------------------------------
 
-nlikelihood <- \(parms, obsData = demoDf) {
-  simDat <- lsoda(
-    y = y,
-    parms = parms,
-    func = seir,
-    times = seq(deltat, maxout, by = deltat)
-  )
-  simDat <- simDat |>
-    as.data.frame() |> 
-    mutate(P = I / (S + E + I + R))
-  
-  nlls <- -dbinom(obsData$cases,
-                  obsData$population,
-                  prob = simDat$P,
-                  log = T)
-  return(nlls)
-}
-nllikelihood <- nlikelihood(parms)
-
-# Initial parameters
-init.pars <- c(log_alpha = log(30), log_Beta = log(.1))
-
-
-# Solving using the optim function
-# optim.vals <- optim(par = parms,
-#                     nllikelihood,
-#                     obsDat = myDat,
-#                     control = list(trace = trace, maxit = 150),
-#                     method = "SANN")
+# nlikelihood <- \(par, obsDat) {
+#   simDat <- lsoda(
+#     y = y,
+#     parms = par,
+#     func = seir,
+#     times = seq(1, nrow(demoDf), by = 1)
+#   )
+#   simDat <- simDat |>
+#     as.data.frame() |> 
+#     mutate(P = I / (S + E + I + R))
+#   
+#   nlls <- -dbinom(x = obsDat$cases,
+#                   size = obsDat$population,
+#                   prob = simDat$P,
+#                   log = T)
+#   return(sum(nlls))
+# }
+# 
+# # Solving using the optim function
+# optim.vals <- optim(par = parms, #isolated
+#                     fn = nlikelihood,
+#                     obsDat = data.frame(demoDf),
+#                     control = list(trace = 3, maxit = 150),
+#                     method = "Nelder-Mead")
+# 
+# simDat <- lsoda(
+#   y = y,
+#   parms = optim.vals$par,
+#   func = seir,
+#   times = seq(1, nrow(demoDf), by = 1)
+# )

@@ -36,7 +36,8 @@ demoDf <- df2 |>
         by = 'year'
         ) |> 
   mutate(date = ymd(date),
-         P = cases/population)
+         P = cases/population,
+         B_t = as.numeric(births)/population)
 
 myDat <- demoDf |>
   mutate(
@@ -63,13 +64,13 @@ pltMeaslesCases <- df2 |>
   ) +
   labs(x = 'Year', y = 'Measles cases')
 pltMeaslesCases
-ggsave(
-  'images/pltMeaslesCases.png',
-  width = 10,
-  height = 6,
-  dpi = 1e3,
-  bg = NULL
-)
+# ggsave(
+#   'images/pltMeaslesCases.png',
+#   width = 10,
+#   height = 6,
+#   dpi = 1e3,
+#   bg = NULL
+# )
 
 
 # Monthly cases
@@ -87,13 +88,13 @@ pltMeaslesCasesMonth <- dfMonth |>
   ) +
   labs(x = 'Year', y = 'Measles cases')
 pltMeaslesCasesMonth 
-ggsave(
-  'images/pltMeaslesCasesMonth.png',
-  width = 10,
-  height = 6,
-  dpi = 1e3,
-  bg = NULL
-)
+# ggsave(
+#   'images/pltMeaslesCasesMonth.png',
+#   width = 10,
+#   height = 6,
+#   dpi = 1e3,
+#   bg = NULL
+# )
 
 
 difftime(as.Date('1967-01-01'), min(dfMonth$yearMonth), units = 'weeks')
