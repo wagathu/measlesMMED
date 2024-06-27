@@ -275,6 +275,79 @@ ggsave(
   bg = NULL
 )
 
+# The SEIR Plot
+wrap_plots(copy(dfs) |>
+             _[ ,birth := case_when(
+               birth == 'birth_0.01' ~ '0.01',
+               birth == 'birth_0.02' ~ '0.02',
+               birth == 'birth_0.03' ~ '0.03',
+               birth == 'birth_0.04' ~ '0.04',
+               TRUE ~ '0.05'
+             )] %>%
+             .[, .(date, S, E, I, R, birth)] %>% 
+             .[, melt(
+               .SD,
+               id.vars = c('date', 'birth')
+             )] %>%
+             split(.$birth) %>%
+             map2(., names(.),
+               ~ .x |> 
+                 ggplot(aes(x = date)) +
+                 geom_line(aes(y = value, colour = variable)) +
+                 theme_light() +
+                 theme(
+                   #axis.line = element_line(color = 'black'),
+                   axis.text = element_text(color = 'black'),
+                   axis.title = element_text(color = 'black'),
+                   plot.title = element_text(color = 'black', hjust = .5)
+                 ) + 
+                 labs(x = 'Year', y = '', title = paste('Birth rate:', .y)) +
+                 scale_y_continuous(labels = scales::number_format())
+  ), guides = 'collect')
+
+ggsave(
+  'images/SEIR.png',
+  width = 20,
+  height = 18,
+  dpi = 1e3,
+  bg = NULL
+)
+
+# Comparing with the actual data ------------------------------------------
+
+demoDf |>
+  select(date, cases) |> 
+  filter(date > as.Date('1951-01-01')) |> 
+  ggplot() +
+  geom_line(aes(x = date, y = cases))
+
+dfs |> 
+  _[, merge(.SD, demoDf |> select(date, cases), by = 'date')] |> 
+  _[ ,birth := case_when(
+    birth == 'birth_0.01' ~ '0.01',
+    birth == 'birth_0.02' ~ '0.02',
+    birth == 'birth_0.03' ~ '0.03',
+    birth == 'birth_0.04' ~ '0.04',
+    TRUE ~ '0.05'
+  )] %>%
+  split(.$birth) %>%
+  map2(., as.character(names(.)),
+       \(x,y) { 
+         x |> 
+           ggplot(aes(x = date)) +
+           geom_point(aes(y = cases)) +
+           geom_line(aes(y = weekly_incidence)) +
+           theme_classic() +
+           theme(
+             axis.line = element_line(color = 'black'),
+             axis.text = element_text(color = 'black'),
+             axis.title = element_text(color = 'black'),
+             plot.title = element_text(color = 'black', hjust = .5)
+           ) + 
+           labs(x = 'Year', y = 'Weekly measles cases', title = paste('Birth rate:', y)) 
+       }
+  )
+
 # Calculating the negative likelihood -------------------------------------
 
 nlikelihood <- \(par, obsDat) {
@@ -294,7 +367,6 @@ nlikelihood <- \(par, obsDat) {
                   log = T)
   return(sum(nlls))
 }
-
 
 # Solving using the optim function
 optim.vals <- optim(par = parms, #isolated
