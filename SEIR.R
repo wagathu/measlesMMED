@@ -330,9 +330,9 @@ individualWk <- copy(dfs) |>
       theme_classic() +
       theme(
         axis.line = element_line(color = 'black'),
-        axis.text = element_text(color = 'black', size = 14),
-        axis.title = element_text(color = 'black', size = 14),
-        plot.title = element_text(color = 'black', hjust = .5, size = 14)
+        axis.text = element_text(color = 'black', size = 16),
+        axis.title = element_text(color = 'black', size = 16),
+        plot.title = element_text(color = 'black', hjust = .5, size = 16)
       ) + 
         labs(x = 'Year', y = 'Weekly measles cases', title = paste('Birth rate:', y)) 
     }
@@ -343,7 +343,6 @@ ggsave(
   'images/individual.png',
   width = 20,
   height = 18,
-  dpi = 1e3,
   bg = NULL
 )
 
@@ -405,10 +404,11 @@ compares <-  copy(dfs) |>
       theme_classic() +
       theme(
         axis.line = element_line(color = 'black'),
-        axis.text = element_text(color = 'black', size = 14),
-        axis.title = element_text(color = 'black', size = 14),
-        plot.title = element_text(color = 'black', hjust = .5, size = 14),
-        legend.text = element_text(color = 'black', size = 14)
+        axis.text = element_text(color = 'black', size = 16),
+        axis.title = element_text(color = 'black', size = 16),
+        plot.title = element_text(color = 'black', hjust = .5, size = 16),
+        legend.text = element_text(color = 'black', size = 16),
+        legend.title =  element_blank()
       ) +
       labs(x = 'Year',
            y = 'Weekly measles cases',
@@ -429,7 +429,6 @@ ggsave(
   'images/pltCompare.png',
   width = 20,
   height = 18,
-  dpi = 1e3,
   bg = NULL
 )
 
