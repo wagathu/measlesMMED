@@ -120,7 +120,7 @@ dfCompare <- modelDf |>
   dplyr::select(-time) |> 
   merge(demoDf |> select(date,cases), by = 'date')
 
-pltCompare <- dfCompare |>
+pltCompareFirst <- dfCompare |>
   filter(date > as.Date('1950-01-01')) |> 
   ggplot(aes(x = date)) +
   geom_point(aes(y = cases), col = 'red') +
@@ -131,15 +131,16 @@ pltCompare <- dfCompare |>
     axis.text = element_text(color = 'black'),
     axis.title = element_text(color = 'black'),
     plot.title = element_text(color = 'black', hjust = .5)
-  ) 
-pltCompare
-# ggsave(
-#   'images/birth0.01375.png',
-#   width = 10,
-#   height = 6,
-#   dpi = 1e3,
-#   bg = NULL
-# )
+  ) +
+  labs(x = 'Year', y = 'Weekly incidence')
+pltCompareFirst
+ggsave(
+  'images/birth0.02.png',
+  width = 10,
+  height = 6,
+  dpi = 1e3,
+  bg = NULL
+)
 
 # Several birth rates -----------------------------------------------------
 
