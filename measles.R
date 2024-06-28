@@ -1,7 +1,19 @@
 
+#' This script loads the data for the weekly measles cases (London 1944 - 1994), yearly 
+#' births in London (1944 - 1994) and the year population in London (1944 - 1994)
+#' 
+#' The script also plots the weekly and monthly measles incidence and then finally 
+#' saves it to the /images folder in this repository
+
 # Importing the packages --------------------------------------------------
 
-pacman::p_load(data.table, tidyverse, purrr, deSolve, ggalt, zoo, lubridate, patchwork)
+pacman::p_load(data.table,
+               tidyverse,
+               purrr,
+               ggalt,
+               zoo,
+               lubridate,
+               patchwork)
 
 # Importing data ----------------------------------------------------------
 
@@ -11,7 +23,7 @@ pop <- fread('data/population.csv')
 
 # Creating the weekly measles cases ---------------------------------------
 
-demography <- merge(b |> 
+demography <- merge(b |>
                       mutate(year = as.integer(year))
                     , pop, by = 'year')
 
@@ -27,7 +39,6 @@ dfMonth <- df %>%
   group_by(yearMonth) |> 
   summarise(cases = sum(cases)) 
 
-
 # Combining for demography ------------------------------------------------
 
 demoDf <- df2 |> 
@@ -38,6 +49,7 @@ demoDf <- df2 |>
   mutate(date = ymd(date),
          P = cases/population,
          B_t = as.numeric(births)/population)
+fwrite(demoDf, 'data/demoDF.csv', row.names = F)
 
 myDat <- demoDf |>
   mutate(
@@ -47,6 +59,7 @@ myDat <- demoDf |>
     P = cases / population
   ) |>
   dplyr::select(time, numPos, numSamp, P)
+fwrite(myDat, 'data/myDat.csv', row.names = F)
 
 # Plotting for the measles inicidence -------------------------------------
 
@@ -64,14 +77,13 @@ pltMeaslesCases <- df2 |>
   ) +
   labs(x = 'Year', y = 'Measles cases')
 pltMeaslesCases
-# ggsave(
-#   'images/pltMeaslesCases.png',
-#   width = 10,
-#   height = 6,
-#   dpi = 1e3,
-#   bg = NULL
-# )
-
+ggsave(
+  'images/pltMeaslesCases.png',
+  width = 10,
+  height = 6,
+  dpi = 1e3,
+  bg = NULL
+)
 
 # Monthly cases
 pltMeaslesCasesMonth <- dfMonth |>
@@ -88,14 +100,10 @@ pltMeaslesCasesMonth <- dfMonth |>
   ) +
   labs(x = 'Year', y = 'Measles cases')
 pltMeaslesCasesMonth 
-# ggsave(
-#   'images/pltMeaslesCasesMonth.png',
-#   width = 10,
-#   height = 6,
-#   dpi = 1e3,
-#   bg = NULL
-# )
-
-
-difftime(as.Date('1967-01-01'), min(dfMonth$yearMonth), units = 'weeks')
-
+ggsave(
+  'images/pltMeaslesCasesMonth.png',
+  width = 10,
+  height = 6,
+  dpi = 1e3,
+  bg = NULL
+)
