@@ -1,26 +1,8 @@
----
-title: "Untitled"
-format: html
-editor: visual
----
 
-## Quarto
+## Introduction
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+The repository contains the codes, data and results for the MMED group 4 project. Our research question was;
 
-## Running Code
+__How does the patterns of birth rate affect the timinh and peak height of measles inicidence__
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
+The measles.R file contains the codes for plotting Figure 2, while the SEIR.R file contains the codes used to produce figures 4:5 in the report
