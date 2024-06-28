@@ -3,6 +3,6 @@
 
 The repository contains the codes, data and results for the MMED group 4 project. Our research question was;
 
-__How does the patterns of birth rate affect the timinh and peak height of measles inicidence__
+**How does the patterns of birth rate affect the timinh and peak height of measles inicidence**
 
 The measles.R file contains the codes for plotting Figure 2, while the SEIR.R file contains the codes used to produce figures 4:5 in the report
