@@ -330,9 +330,9 @@ individualWk <- copy(dfs) |>
       theme_classic() +
       theme(
         axis.line = element_line(color = 'black'),
-        axis.text = element_text(color = 'black'),
-        axis.title = element_text(color = 'black'),
-        plot.title = element_text(color = 'black', hjust = .5)
+        axis.text = element_text(color = 'black', size = 14),
+        axis.title = element_text(color = 'black', size = 14),
+        plot.title = element_text(color = 'black', hjust = .5, size = 14)
       ) + 
         labs(x = 'Year', y = 'Weekly measles cases', title = paste('Birth rate:', y)) 
     }
@@ -340,7 +340,7 @@ individualWk <- copy(dfs) |>
 individual <- wrap_plots(individualWk, nrow = 2)
 individual
 ggsave(
-  'images/combinedWeeklyIncidence.png',
+  'images/individual.png',
   width = 20,
   height = 18,
   dpi = 1e3,
